@@ -1,4 +1,10 @@
 #!/bin/bash
-wget https://raw.githubusercontent.com/DenysMb/IconChanger/master/IconChooser.py
 mkdir -p ~/.local/share/nautilus/scripts
-mv IconChooser.py ~/.local/share/nautilus/scripts
+FILE=./IconChooser.py
+if ! [ -f "$FILE" ]; then
+	wget https://raw.githubusercontent.com/DenysMb/IconChanger/master/IconChooser.py -P /tmp/
+	mv /tmp/IconChooser.py ~/.local/share/nautilus/scripts
+else
+	mv IconChooser.py ~/.local/share/nautilus/scripts
+fi
+
