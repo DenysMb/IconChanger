@@ -6,4 +6,4 @@ if ! [ -f "$FILE" ]; then
 else
 	mv IconChooser.py ~/.local/share/nautilus/scripts
 fi
-
+chmod +x ~/.local/share/nautilus/scripts/IconChooser.py
