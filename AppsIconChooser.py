@@ -149,7 +149,7 @@ class MainWindow(Gtk.Window):
                         else:
                             pass
 
-                elif path.exists(currentPath + '/apps'):
+                if path.exists(currentPath + '/apps'):
                     currentPath = currentPath + '/apps'
 
                     if path.exists(currentPath + '/48'):
