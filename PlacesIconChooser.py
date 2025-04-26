@@ -13,9 +13,10 @@ import sys
 import subprocess
 import os
 import pathlib
+import time
 
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, Gio
+from gi.repository import Gtk, Gio, GLib
 from gi.repository.GdkPixbuf import Pixbuf
 
 iconTheme = subprocess.getoutput('gsettings get org.gnome.desktop.interface icon-theme')
@@ -26,6 +27,9 @@ class MainWindow(Gtk.Window):
         Gtk.Window.__init__(self, title="Icon Chooser")
         self.set_default_size(835, 400)
 
+        self.last_search_time = 0
+        self.search_timeout_id = None
+
         self.grid = Gtk.Grid(column_homogeneous=True)
         self.add(self.grid)
 
@@ -34,7 +38,7 @@ class MainWindow(Gtk.Window):
         self.entry = Gtk.Entry()
         self.entry.set_placeholder_text('Search icon')
         self.entry.set_text("")
-        self.entry.connect("activate", self.search)
+        self.entry.connect("changed", self.on_search_text_changed)
 
         self.liststore = Gtk.ListStore(Pixbuf, str)
         self.iconview = Gtk.IconView.new()
@@ -49,9 +53,6 @@ class MainWindow(Gtk.Window):
 
         self.getIcons(self.icons)
 
-        self.button = Gtk.Button.new_with_label("Search")
-        self.button.connect("clicked", self.search)
-
         self.revertButton = Gtk.Button.new_with_label("Revert")
         self.revertButton.connect("clicked", self.revert)
 
@@ -63,16 +64,22 @@ class MainWindow(Gtk.Window):
         self.scrolledwindow.set_vexpand(True)
 
         self.grid.add(self.entry)
-        self.grid.attach(self.button, 0, 1, 1, 1)
-        self.grid.attach(self.scrolledwindow, 0, 2, 1, 1)
-        # self.grid.attach(self.revertButton, 0, 3, 1, 1)
-        self.grid.attach(self.applyButton, 0, 4, 1, 1)
+        self.grid.attach(self.scrolledwindow, 0, 1, 1, 1)
+        self.grid.attach(self.applyButton, 0, 3, 1, 1)
+
+    def on_search_text_changed(self, entry):
+        if self.search_timeout_id:
+            GLib.source_remove(self.search_timeout_id)
+
+        self.search_timeout_id = GLib.timeout_add(300, self.search, None)
 
     def search(self, button):
         value = self.entry.get_text()
 
+        self.search_timeout_id = None
+
         def filterIcons(icons):
-            if(value in icons["name"]):
+            if value.lower() in icons["name"].lower():
                 return True
             else:
                 return False
@@ -81,6 +88,8 @@ class MainWindow(Gtk.Window):
 
         self.liststore.clear()
         self.getIcons(filteredIcons)
+
+        return False
 
     def revert(self, button):
         current = os.getenv("NAUTILUS_SCRIPT_CURRENT_URI", '').replace("file://", "").replace("%20", " ")
