@@ -30,7 +30,7 @@ class MainWindow(Gtk.Window):
         self.add(self.grid)
 
         self.scrolledwindow = Gtk.ScrolledWindow()
-        
+
         self.entry = Gtk.Entry()
         self.entry.set_placeholder_text('Search icon')
         self.entry.set_text("")
@@ -70,13 +70,13 @@ class MainWindow(Gtk.Window):
 
     def search(self, button):
         value = self.entry.get_text()
-        
+
         def filterIcons(icons):
             if(value in icons["name"]):
                 return True
             else:
                 return False
-        
+
         filteredIcons = list(filter(filterIcons, self.icons))
 
         self.liststore.clear()
@@ -124,15 +124,22 @@ class MainWindow(Gtk.Window):
                 print(inst)
 
     def getPlaceIcons(self):
-        defaultPath = '/usr/share/icons/'
+        systemPath = '/usr/share/icons/'
+        userPath = os.path.expanduser('~/.local/share/icons/')
         currentPath = ''
         allFiles = []
 
-        directories = [f for f in listdir(defaultPath)]
+        systemDirectories = [f for f in listdir(systemPath)]
+
+        userDirectories = [f for f in listdir(userPath)]
+
+        directories = systemDirectories + userDirectories
+
+        iconThemePath = systemPath if iconTheme in systemDirectories else userPath
 
         for directory in directories:
             if directory == iconTheme:
-                currentPath = defaultPath + directory
+                currentPath = iconThemePath + directory
 
                 if path.exists(currentPath + '/48'):
                     currentPath = currentPath + '/48'
